@@ -1,37 +1,85 @@
 {% extends "base.html" %}
 {% block body %}
-<h1 id="list_apps">Wharf</h1>
-<form class="form" action="{{ url('refresh_all') }}" method="POST">
-  {% csrf_token %}
-  <button type="submit" class="btn btn-primary" id="refresh_info">Refresh Dokku information</button>
-</form>
-<h3>Apps</h3>
-<ul class=apps>
+<h1 class="d-flex justify-content-between align-items-center" id="list_apps">
+  Wharf
+
+  <form class="form" action="{{ url('refresh_all') }}" method="POST">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-light" id="refresh_info">Refresh Dokku information</button>
+  </form>
+</h1>
+
+<h2>
+  Apps
+  <button
+    class="btn btn-primary float-right"
+    type="button"
+    data-toggle="collapse"
+    data-target="#new-app"
+    aria-expanded="false"
+    aria-controls="new-app"
+  >
+    <i class="remixicon-add-line"></i> New app
+  </button>
+</h2>
+<div class="card collapse" id="new-app">
+  <div class="card-body">
+    <h3 class="card-title">New app</h3>
+    <form class="form" action="{{ url('index') }}" method="POST">
+      {% csrf_token %}
+      <input type="hidden" name="kind" value="app" />
+      {{ app_form | bootstrap }}
+      <button type="submit" class="btn btn-primary" id="create_app">Create app</button>
+    </form>
+  </div>
+</div>
+<div class="apps list-group">
 {% for app in apps %}
-  <h2><li><a href="{{ url('app_info', app_name=app) }}">{{ app }}</a></li></h2>
+  <a class="list-group-item list-group-item-action" href="{{ url('app_info', app_name=app) }}">
+    <h3 class="m-0">{{ app }}</h3>
+  </a>
 {% else %}
-  <li><em>Unbelievable.  No apps here so far</em></li>
+  <em>Unbelievable.  No apps here so far</em>
 {% endfor %}
-</ul>
-<h3>New app</h3>
-<form class="form" action="{{ url('index') }}" method="POST">
-  {% csrf_token %}
-  <input type="hidden" name="kind" value="app" />
-  {{ app_form | bootstrap }}
-  <button type="submit" class="btn btn-primary" id="create_app">Create app</button>
-</form>
-<br />
-<h2>Global Config</h2>
-<ul class=config>
-  {% for (k,v) in config %}
-    <li>{{ k }} = {{ v }}</li>
-  {% endfor %}
-</ul>
-<h3>New item</h3>
-<form action="{{ url('global_config_set') }}" method="POST">
-  {% csrf_token %}
-  <input type="hidden" name="kind" value="config" />
-  {{ config_form | bootstrap }}
-  <input class="form-control" type="submit" value="Submit" />
-</form>
+</div>
+
+<h2>
+  Global Config
+  <button
+    class="btn btn-primary float-right"
+    type="button"
+    data-toggle="collapse"
+    data-target="#new-config"
+    aria-expanded="false"
+    aria-controls="new-config"
+  >
+    <i class="remixicon-add-line"></i> New item
+  </button>
+</h2>
+<div class="card collapse" id="new-config">
+  <div class="card-body">
+    <h3 class="card-title">New item</h3>
+    <form action="{{ url('global_config_set') }}" method="POST">
+      {% csrf_token %}
+      <input type="hidden" name="kind" value="config" />
+      {{ config_form | bootstrap }}
+      <input class="form-control" type="submit" value="Submit" />
+    </form>
+  </div>
+</div>
+
+<table class="config table">
+  <thead class="sr-only">
+    <th>Key</th>
+    <th>Value</th>
+  </thead>
+  <tbody>
+    {% for (k,v) in config %}
+      <tr>
+        <td>{{ k }}</td>
+        <td>{{ v }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
 {% endblock %}
