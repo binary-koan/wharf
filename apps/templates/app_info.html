@@ -1,11 +1,12 @@
 {% extends "base.html" %}
 {% block body %}
-<h1 id="app_page" >Wharf: {{ app }}</h1>
-<a href="{{ url('index') }}">Return to apps index</a><br />
+<h1 id="app_page" ><a href="{{ url('index') }}">Wharf</a> / {{ app }}</h1>
 
 <h3>Actions</h3>
 {% if git_url == None %}
-Can't deploy due to missing GITHUB_URL in config (which should be set to the "Clone with HTTPS" url from Github)
+<div class="alert alert-warning">
+  Can't deploy due to missing GITHUB_URL in config (which should be set to the "Clone with HTTPS" url from Github)
+</div>
 {% else %}
 <form class="form-inline" action="{{ url('deploy', app_name=app) }}" method="POST">
   {% csrf_token %}
@@ -13,49 +14,99 @@ Can't deploy due to missing GITHUB_URL in config (which should be set to the "Cl
   <button type="submit" class="btn btn-primary">Deploy app</button>
 </form>
 {% endif %}
+
 <h2>Task logs</h2>
 {% if task_logs %}
-<ul>
+<div class="list-group">
   {% for tl in task_logs %}
-    <li><a href="{{ url('show_log', task_id=tl.task_id) }}">{{ tl.nice_when() }} - {{ tl.description }}</a></li>
+    <a class="list-group-item" href="{{ url('show_log', task_id=tl.task_id) }}">{{ tl.nice_when() }} - {{ tl.description }}</a></li>
   {% endfor %}
-</ul>
+</div>
 {% else %}
 No tasks run yet
 {% endif %}
-<h2>Domains</h2>
-{% if domains.length == 0 %}None{% else %}
-<ul>
-  {% for d in domains %}
-    <li>
-      <a href="{{ 'https' if letsencrypt else 'http' }}://{{ d }}">{{ d }}</a>
-      <form class="d-inline" action="{{ url('remove_domain', app_name=app) }}" method="POST">
+
+<h2>
+  Domains
+  <button
+    class="btn btn-primary float-right"
+    type="button"
+    data-toggle="collapse"
+    data-target="#new-domain"
+    aria-expanded="false"
+    aria-controls="new-domain"
+  >
+    <i class="remixicon-add-line"></i> Add domain
+  </button>
+</h2>
+<div class="card collapse" id="new-domain">
+  <div class="card-body">
+    <h3 class="card-title">New domain</h3>
+    <form action="{{ url('add_domain', app_name=app) }}" method="POST">
       {% csrf_token %}
-        <input type="hidden" name="name" value="{{d}}" />
-        <button type="submit" class="btn btn-primary">Delete '{{d}}' domain</button>
-      </form>
+      {{ domain_form | bootstrap }}
+      <input class="form-control" type="submit" value="Submit" />
+    </form>
+  </div>
+</div>
+
+{% if domains.length == 0 %}None{% else %}
+<ul class="list-group">
+  {% for d in domains %}
+    <li class="list-group-item">
+      <div class="d-flex justify-content-between align-items-center">
+        <a href="{{ 'https' if letsencrypt else 'http' }}://{{ d }}">{{ d }}</a>
+        <form action="{{ url('remove_domain', app_name=app) }}" method="POST">
+        {% csrf_token %}
+          <input type="hidden" name="name" value="{{d}}" />
+          <button type="submit" class="btn btn-primary">Delete '{{d}}' domain</button>
+        </form>
+      </div>
     </li>
   {% endfor %}
 </ul>
 {% endif %}
-<h3>New domain</h3>
-<form action="{{ url('add_domain', app_name=app) }}" method="POST">
-  {% csrf_token %}
-  {{ domain_form | bootstrap }}
-  <input class="form-control" type="submit" value="Submit" />
-</form>
-<h2>Config</h2>
-<ul class=config>
-  {% for (k,v) in config %}
-    <li>{{ k }} = {{ v }}</li>
-  {% endfor %}
-</ul>
-<h3>New item</h3>
-<form action="{{ url('app_info', app_name=app) }}" method="POST">
-  {% csrf_token %}
-  {{ form | bootstrap }}
-  <input class="form-control" type="submit" value="Submit" />
-</form>
+
+<h2>
+  Config
+  <button
+    class="btn btn-primary float-right"
+    type="button"
+    data-toggle="collapse"
+    data-target="#new-config"
+    aria-expanded="false"
+    aria-controls="new-config"
+  >
+    <i class="remixicon-add-line"></i> Add item
+  </button>
+</h2>
+<div class="card collapse" id="new-config">
+  <div class="card-body">
+    <h3 class="card-title">New item</h3>
+    <form action="{{ url('app_info', app_name=app) }}" method="POST">
+      {% csrf_token %}
+      {{ form | bootstrap }}
+      <input class="form-control" type="submit" value="Submit" />
+    </form>
+  </div>
+</div>
+
+<table class="config table">
+  <thead class="sr-only">
+    <th>Key</th>
+    <th>Value</th>
+  </thead>
+  <tbody>
+    {% for (k,v) in config %}
+      <tr>
+        <td>{{ k }}</td>
+        <td>{{ v }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<h2>Plugins</h2>
 <h3>Postgres</h3>
 {% if postgres %}
 Status: {{ postgres['STATUS'] }}
@@ -87,20 +138,34 @@ Status: {{ redis['STATUS'] }}
   <button type="submit" class="btn btn-primary">Setup Let's Encrypt</button>
 </form>
 {% endif %}
-<h3>Process Info</h3>
-<ul>
-  {% for (k,v) in process.items() if k!= 'processes' %}
-  <li>{{k}}: {{v}}</li>
-  {% endfor %}
-</ul>
-<h3>Processes</h3>
-<ul>
+
+<h2>Process Info</h2>
+<div class="card">
+  <div class="card-body">
+    <ul>
+      {% for (k,v) in process.items() if k!= 'processes' %}
+      <li>{{k}}: {{v}}</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+
+<h2>Processes</h2>
+<ul class="list-group">
   {% for (k,v) in process['processes'].items() %}
-  <li>{{k}}: {{v}}</li>
+  <li class="list-group-item d-flex justify-content-between align-items-center">
+    {{k}}
+    <span class="badge {% if v == 'running' %}badge-success{% else %}badge-secondary{% endif %}">
+      {{v}}
+    </span>
+  </li>
   {% endfor %}
 </ul>
-<h3>Logs</h3>
-<pre>
-{{ logs }}
+
+<h2>Logs</h2>
+<pre class="card">
+  <code class="card-body">
+    {{ logs }}
+  </code>
 </pre>
 {% endblock %}
