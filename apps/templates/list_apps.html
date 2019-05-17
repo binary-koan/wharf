@@ -1,15 +1,19 @@
 {% extends "base.html" %}
 {% block body %}
-<h1 class="d-flex justify-content-between align-items-center" id="list_apps">
+<h1 class="d-flex justify-content-between align-items-center mt-3 mb-3" id="list_apps">
   Wharf
 
   <form class="form" action="{{ url('refresh_all') }}" method="POST">
     {% csrf_token %}
-    <button type="submit" class="btn btn-light" id="refresh_info">Refresh Dokku information</button>
+    <button type="submit" class="btn btn-outline-primary" id="refresh_info">
+      <i class="octicon-sync"></i> Refresh Dokku information
+    </button>
   </form>
 </h1>
 
-<h2>
+<hr />
+
+<h2 class="mb-3">
   Apps
   <button
     class="btn btn-primary float-right"
@@ -19,31 +23,33 @@
     aria-expanded="false"
     aria-controls="new-app"
   >
-    <i class="remixicon-add-line"></i> New app
+    <i class="octicon-plus"></i> New app
   </button>
 </h2>
-<div class="card collapse" id="new-app">
-  <div class="card-body">
-    <h3 class="card-title">New app</h3>
-    <form class="form" action="{{ url('index') }}" method="POST">
-      {% csrf_token %}
-      <input type="hidden" name="kind" value="app" />
-      {{ app_form | bootstrap }}
-      <button type="submit" class="btn btn-primary" id="create_app">Create app</button>
-    </form>
+<div class="collapse" id="new-app">
+  <div class="card mb-3">
+    <div class="card-body">
+      <h3 class="card-title">New app</h3>
+      <form class="form" action="{{ url('index') }}" method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="kind" value="app" />
+        {{ app_form | bootstrap }}
+        <button type="submit" class="btn btn-primary" id="create_app">Create app</button>
+      </form>
+    </div>
   </div>
 </div>
-<div class="apps list-group">
+<div class="apps list-group mb-4">
 {% for app in apps %}
   <a class="list-group-item list-group-item-action" href="{{ url('app_info', app_name=app) }}">
-    <h3 class="m-0">{{ app }}</h3>
+    <h3 class="h4 m-0">{{ app }}</h3>
   </a>
 {% else %}
   <em>Unbelievable.  No apps here so far</em>
 {% endfor %}
 </div>
 
-<h2>
+<h2 class="mb-3">
   Global Config
   <button
     class="btn btn-primary float-right"
@@ -53,22 +59,24 @@
     aria-expanded="false"
     aria-controls="new-config"
   >
-    <i class="remixicon-add-line"></i> New item
+    <i class="octicon-plus"></i> New item
   </button>
 </h2>
-<div class="card collapse" id="new-config">
-  <div class="card-body">
-    <h3 class="card-title">New item</h3>
-    <form action="{{ url('global_config_set') }}" method="POST">
-      {% csrf_token %}
-      <input type="hidden" name="kind" value="config" />
-      {{ config_form | bootstrap }}
-      <input class="form-control" type="submit" value="Submit" />
-    </form>
+<div class="collapse" id="new-config">
+  <div class="card mb-3">
+    <div class="card-body">
+      <h3 class="card-title">New item</h3>
+      <form action="{{ url('global_config_set') }}" method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="kind" value="config" />
+        {{ config_form | bootstrap }}
+        <input class="form-control" type="submit" value="Submit" />
+      </form>
+    </div>
   </div>
 </div>
 
-<table class="config table">
+<table class="config table table-bordered rounded bg-white mb-4">
   <thead class="sr-only">
     <th>Key</th>
     <th>Value</th>
